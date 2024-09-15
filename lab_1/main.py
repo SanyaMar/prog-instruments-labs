@@ -1,18 +1,20 @@
-# Scraping
-import lxml # html parser
-import cchardet # character reading
-from bs4 import BeautifulSoup 
+""" Scraping
+    import lxml for html parser
+    import cchardet for character reading
+    import PySimpleGUI and urllib.request for GUI
+    from PIL import Image and import io for  GUI JPG Image processing
+"""
+import cchardet
+import lxml
 import requests
+from bs4 import BeautifulSoup 
 
-# Exporting to CSV and Pickle module
 import csv
 import pickle
 
-# GUI
 import PySimpleGUI as sg
 import urllib.request
 
-# GUI JPG Image processing
 import io
 from PIL import Image
 
