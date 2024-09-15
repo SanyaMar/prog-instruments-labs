@@ -22,29 +22,64 @@ from PIL import Image
 # --------------- Class Objects ---------------- #
 ##################################################
 
-# artImg object, contains a string for both the source link and the alt text
+
 class Artwork:
+    """
+    Represents an artwork with its source link and alt text.
+
+    Attributes:
+        imgSrc (str): The URL of the artwork image.
+        imgAlt (str): The alt text for the artwork image.
+    """
     imgSrc = ""
     imgAlt = ""
 
     def __init__(self, imgSrc, imgAlt):
+        """
+        Initializes the Artwork object with image source and alt text.
+
+        Args:
+            imgSrc (str): The URL of the artwork image.
+            imgAlt (str): The alt text for the artwork image.
+        """
         self.imgSrc = imgSrc
         self.imgAlt = imgAlt
 
-# artEntry object, contains all information of an artwork entry including the artwork links, date, source title, and source image
+
 class ArtEntry:
+    """
+    Represents an entry of artwork including its details.
+
+    Attributes:
+        artworkList (list): List of Artwork objects associated with this entry.
+        date (str): The date associated with the artwork entry.
+        sourceTitle (str): The title of the source from which the artwork is taken.
+        sourceImgList (list): List of Artwork objects representing source images.
+    """
     artworkList = [] # list containing Artwork objects
     date = ""
     sourceTitle = ""
     sourceImgList = [] # list of Artwork objects (source images)
     
     def __init__(self, artworkList, date, sourceTitle, sourceImgList) :
+        """
+        Initializes the ArtEntry object with details of the artwork entry.
+
+        Args:
+            artworkList (list): List of Artwork objects.
+            date (str): The date associated with the entry.
+            sourceTitle (str): The title of the source.
+            sourceImgList (list): List of Artwork objects for source images.
+        """
         self.artworkList = artworkList
         self.date = date
         self.sourceTitle = sourceTitle
         self.sourceImgList = sourceImgList
 
     def __repr__(self):
+        """
+        Returns a string representation of the ArtEntry object.
+        """
         return f"{self.sourceTitle}"
 
 
@@ -65,8 +100,12 @@ class ArtEntry:
     #
 allArtEntries = []
 
-# Asks user to either 1) use previously stored data 2) rescrape data (which will take several minutes)
 def useScraper() :
+    """
+    Prompts the user to choose between using previously stored data or rescraping data.
+
+    If the user chooses to rescrape, it calls the runScraper function.
+    """
     # Theme
     sg.theme('DarkGrey4')
     
@@ -74,10 +113,17 @@ def useScraper() :
     if (choice == "No") :
         runScraper()
 
-# Formats image lists into multi-line strings for csv formatting:
-    # src: <link>
-    # alt: <link>
+
 def formatImgList(list) :
+    """
+    Formats a list of image sources into a multi-line string for CSV formatting.
+
+    Args:
+        list: List of image links or alt texts.
+
+    Returns:
+        str: A formatted string where each entry is on a new line.
+    """
     formattedStr = ""
 
     for string in list :
@@ -89,8 +135,11 @@ def formatImgList(list) :
 
 # --------------- Scraper ---------------- #
 
-# Requests page content, scrapes and iterates through art entry (then iterates through every section of the entry) are stores data in list and CSV file
 def runScraper() :
+    """
+    Requests page content from a specified URL, scrapes art entries, 
+    and stores the data in a list and a CSV file.
+    """
     # GET Request
     URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
     requests_session = requests.Session()
@@ -214,8 +263,9 @@ def runScraper() :
 #########################################
 
 def main():
-    # Asks user to use stored data or scrape
-        # If user prompts to not use stored data, run scraper
+    """ 
+    Asks user to use stored data or scrape  
+    """
     useScraper()
     
 if __name__ == '__main__':
@@ -229,8 +279,17 @@ if __name__ == '__main__':
 # --------------- GUI Functions ---------------- #
 ##################################################
 
-# Is passed an img url (src), and spoofs headers to bypass Error 403: Forbidden
 def openUrl(src) :
+    """
+    The function takes the URL of the image and opens it.
+    Spoofing headers are used to bypass the 403: Forbidden error.
+
+    Args:
+        src (str): URL of the image.
+
+    Returns:
+        n object of type urllib.response.urlopen or None in case of an error.
+    """
     try:
         req = urllib.request.Request(src, headers={'User-Agent' : "Magic Browser"}) 
         return urllib.request.urlopen(req)
@@ -239,7 +298,15 @@ def openUrl(src) :
 
 # Returns image value for EntryImage depending on img type (PNG or JPG)
 def returnImgData(url) :
-                
+    """
+    The function returns image data depending on its type (PNG or JPG).
+
+    Args:
+        url (str): URL of the image.
+
+    Returns:
+        The image data is in PNG format or None if the image failed to load.
+    """            
     # If imgSrc is a png, update window using urllib
     if('.png' in url) :
         #window["-ENTRYIMAGE-"].update(openUrl(url).read())
@@ -317,20 +384,29 @@ currentList = currentEntry.artworkList
 
 # --------------- Window Updater Functions ---------------- #
 
-# Updates date text
 def updateDate():
+    """
+    Updates date text
+    """
     window["-DATE-"].update(f"{currentEntry.date}")
 
-# Updates title text
 def updateTitle():
+    """
+    Updates title text
+    """
     window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
 
-# Updates image window
 def updateImgWindow() :
+    """
+    Updates image window
+    """
     window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
 
 # Updates button and artworkList index visibility if artworkList > 1 
 def updateButtonVis():
+    """
+    Updates button and artworkList index visibility if artworkList > 1 
+    """
     if(len(currentList) > 1) :
         window["-PREV-"].update(visible=True)
         window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}", visible=True)
@@ -340,13 +416,17 @@ def updateButtonVis():
         window["-LISTINDEX-"].update(visible=False)
         window["-NEXT-"].update(visible=False)
 
-# Defaults checkbox selection
 def updateCheckboxes():
+    """
+    Defaults checkbox selection
+    """
     window["-ARTWORKLIST-"].update(True, visible=True)
     window["-SOURCELIST-"].update(False, visible=True)
 
-# Updates list index text
 def updateListIndex():
+    """
+    Updates list index text
+    """
     window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")   
 
 
