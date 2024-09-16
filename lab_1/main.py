@@ -21,8 +21,7 @@ import urllib.request
 import io
 from PIL import Image
 
-
-# Class Objects 
+# Class Objects
 class Artwork:
     """
     Represents an artwork with its source link and alt text.
@@ -58,11 +57,11 @@ class ArtEntry:
         source_img_list (list): List of Artwork objects representing source images.
     """
 
-    artwork_list: List[Artwork] = []  
+    artwork_list: List[Artwork] = []
     date: str = ""
     source_title: str = ""
     source_img_list: List[Artwork] = []
-    
+
     def __init__(self, artwork_list: List[Artwork], date: str, source_title: str, source_img_list: List[Artwork]) -> None:
         """
         Initializes the ArtEntry object with details of the artwork entry.
@@ -93,8 +92,9 @@ class ArtEntry:
 #                             -> source_title ""
 #                             -> source_img_list[]  -> Artwork -> img_src ""
 #                                                         -> img_alt ""
-    
+
 all_art_entries: List[ArtEntry] = []
+
 
 def use_scraper() -> None:
     """
@@ -104,9 +104,14 @@ def use_scraper() -> None:
     """
     # Theme
     sg.theme("DarkGrey4")
-    
-    choice: Optional[str] = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", "", title="JoJo's Art Scraper and Viewer")
-    
+
+    choice: Optional[str] = sg.popup_yes_no(
+        "Do you want to use previously stored data?",
+        "Selecting \"No\" will take several minutes to update all stored entries.",
+        "",
+        title="JoJo's Art Scraper and Viewer"
+    )
+
     if choice == "No":
         run_scraper()
 
@@ -137,9 +142,9 @@ def run_scraper() -> None:
     and stores the data in a list and a CSV file.
     """
     # GET Request
-    URL: str =  "https://jojowiki.com/Art_Gallery#2021-2025-0"
+    URL: str = "https://jojowiki.com/Art_Gallery#2021-2025-0"
     requests_session = requests.Session()
-    page = requests_session.get( URL )  
+    page = requests_session.get(URL)
 
     # Check for successful status code (200)
     print("Status Code - {}".format(page.status_code))
@@ -147,7 +152,7 @@ def run_scraper() -> None:
         print("Successful Connection")
     else:
         print("Unsuccessful Connection")
-     
+
     # HTML Parser
     soup = BeautifulSoup(page.text, "lxml")
     divs = soup.find("div", {"class": "phantom-blood-tabs"})
@@ -172,17 +177,17 @@ def run_scraper() -> None:
         src_img_obj = Artwork("", "")
 
         # Iterates through each subsection and row of csv, and writes to csv with scraped data
-        section_counter: int = 1 
+        section_counter: int = 1
         for section in sections:
             # If on a subsection containing images (1 and 4), scrape image content
-            if(section_counter == 1 or section_counter == 4):
-                thumbnails = section.find_all("a") 
+            if (section_counter == 1 or section_counter == 4):
+                thumbnails = section.find_all("a")
 
-                # For every thumbnail image, find full-res webpage and create new 
-                for thumbnail in thumbnails :
+                # For every thumbnail image, find full-res webpage and create new
+                for thumbnail in thumbnails:
                     # Grabs href for full-res image webpage from thumbnail container
-                    href: Optional[str] = thumbnail.get("href") 
-                    new_url: str = f"https://jojowiki.com{href}" 
+                    href: Optional[str] = thumbnail.get("href")
+                    new_url: str = f"https://jojowiki.com{href}"
 
                     # Temporary HTML parser to scrape full-res image
                     new_requests_session = requests.Session()
@@ -194,41 +199,44 @@ def run_scraper() -> None:
                     src = media.get("src")
                     alt = media.get("alt")
 
-                    if(section_counter == 1):
+                    if (section_counter == 1):
                         # Stores in all_art_entries list
-                        artwork_obj = Artwork(src, alt) 
-                        art_entry_obj.artwork_list.append(artwork_obj) 
+                        artwork_obj = Artwork(src, alt)
+                        art_entry_obj.artwork_list.append(artwork_obj)
 
                         # Stores in CSV
-                        artwork_list.append("<src: " + src + "\nalt: " + alt + ">")
+                        artwork_list.append(
+                            "<src: " + src + "\nalt: " + alt + ">")
 
-                    elif(section_counter == 4):
+                    elif (section_counter == 4):
                         # Stores in all_art_entries list
                         src_img_obj = Artwork(src, alt)
                         art_entry_obj.source_img_list.append(src_img_obj)
-                        source_img_list.append("<src: " + src + "\nalt: " + alt + ">")
+                        source_img_list.append(
+                            "<src: " + src + "\nalt: " + alt + ">")
 
             # If on a subsection containing text (2 and 3), scrape text content
-            elif(section_counter == 2 or section_counter == 3):
+            elif (section_counter == 2 or section_counter == 3):
                 # Text content is stored within <center> tags
                 text_content = section.find("center")
 
                 for string in text_content.strings:
-                    if(section_counter == 2):
+                    if (section_counter == 2):
                         date += string
-                    elif(section_counter == 3):
+                    elif (section_counter == 3):
                         source_title += string
 
             # After scraping subsection, update tracker to next
             section_counter += 1
-        
+
         # Appends artEntry to list all_art_entries
         art_entry_obj.date = date
         art_entry_obj.source_title = source_title
         all_art_entries.append(art_entry_obj)
 
         # Writes to csv file, formatting the image lists into formatted strings
-        writer.writerow([format_img_list(artwork_list), date, source_title, format_img_list(source_img_list)])
+        writer.writerow([format_img_list(artwork_list), date,
+                        source_title, format_img_list(source_img_list)])
         pickle.dump(all_art_entries, open("artEntriesData.p", "wb"))
 
     file.close()
@@ -258,10 +266,12 @@ def open_url(src: str) -> Optional[urllib.response.urlopen]:
         n object of type urllib.response.urlopen or None in case of an error.
     """
     try:
-        req = urllib.request.Request(src, headers={"User-Agent": "Magic Browser"})
+        req = urllib.request.Request(
+            src, headers={"User-Agent": "Magic Browser"})
         return urllib.request.urlopen(req)
     except Exception as e:
         print(f"Error encountered in open_url() with src: '{src}': {e}")
+
 
 def return_img_data(url: str) -> Optional[bytes]:
     """
@@ -272,7 +282,7 @@ def return_img_data(url: str) -> Optional[bytes]:
 
     Returns:
         The image data is in PNG format or None if the image failed to load.
-    """            
+    """
     # If img_src is a png, update window using urllib
     if ".png" in url:
         return open_url(url).read()
@@ -286,12 +296,15 @@ def return_img_data(url: str) -> Optional[bytes]:
         png_data = png_bio.getvalue()
         return png_data
 
-# GUI 
+
+# GUI
 all_art_entries: List[str] = pickle.load(open("artEntriesData.p", "rb"))
 
 check_boxes: List[sg.Radio] = []
-check_boxes.append(sg.Radio("Arts", "faculty", key="arts", enable_events=True, default=True))
-check_boxes.append(sg.Radio("Commerce", "faculty", key="comm", enable_events=True))
+check_boxes.append(sg.Radio("Arts", "faculty", key="arts",
+                   enable_events=True, default=True))
+check_boxes.append(sg.Radio("Commerce", "faculty",
+                   key="comm", enable_events=True))
 
 # List of Entries
 entry_list_column: List[List[sg.Listbox]] = [
@@ -305,7 +318,6 @@ entry_list_column: List[List[sg.Listbox]] = [
 
 # Entry Viewer panel
 entry_viewer_column: List[List[sg.Element]] = [
-
     # Instruction Text
     [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
 
@@ -313,16 +325,19 @@ entry_viewer_column: List[List[sg.Element]] = [
     [sg.Image(key="-ENTRYIMAGE-")],
 
     # Next and Previous buttons, artwork_list index
-    [sg.Button("Prev", key="-PREV-",  visible=False), sg.Text(key = "-LISTINDEX-", visible=False), sg.Button("Next", key="-NEXT-", visible=False)],
+    [sg.Button("Prev", key="-PREV-", visible=False), 
+     sg.Text(key="-LISTINDEX-", visible=False), 
+     sg.Button("Next", key="-NEXT-", visible=False)],
 
     # Title text
-    [sg.Text(key="-TITLE-")],
+    [sg.Text(key='-TITLE-')],
 
     # Date text
-    [sg.Text(key="-DATE-")],
+    [sg.Text(key='-DATE-')],
 
     # Select viewed list
-    [sg.Radio("Artworks", "checkbox", key="-ARTWORKLIST-", enable_events=True,default=True, visible=False), sg.Radio("Source", "checkbox", key="-SOURCELIST-", enable_events=True, visible=False)]
+    [sg.Radio("Artworks", "checkbox", key='-ARTWORKLIST-', enable_events=True, default=True, visible=False), 
+     sg.Radio("Source", "checkbox", key='-SOURCELIST-', enable_events=True, visible=False)]
 ]
 
 # Layout
@@ -338,10 +353,11 @@ window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
 
 # Window variables
 entry_img_index: int = 0
-current_entry: ArtEntry = ArtEntry([Artwork("img", "alt")], "date", "title", [Artwork("srcimg", "srcalt")])
+current_entry: ArtEntry = ArtEntry([Artwork("img", "alt")], "date", "title", [
+                                   Artwork("srcimg", "srcalt")])
 current_list: List[Artwork] = current_entry.artwork_list
 
-#Window updater functions
+# Window updater functions
 def update_date() -> None:
     """
     Updates date text.
@@ -360,7 +376,8 @@ def update_img_window() -> None:
     """
     Updates image window.
     """
-    window["-ENTRYIMAGE-"].update(return_img_data(current_list[entry_img_index].img_src))
+    window["-ENTRYIMAGE-"].update(return_img_data(
+        current_list[entry_img_index].img_src))
 
 
 def update_button_vis() -> None:
@@ -369,7 +386,8 @@ def update_button_vis() -> None:
     """
     if len(current_list) > 1:
         window["-PREV-"].update(visible=True)
-        window["-LISTINDEX-"].update(f"{entry_img_index + 1} of {len(current_list)}", visible=True)
+        window["-LISTINDEX-"].update(
+            f"{entry_img_index + 1} of {len(current_list)}", visible=True)
         window["-NEXT-"].update(visible=True)
     else:
         window["-PREV-"].update(visible=False)
@@ -389,10 +407,11 @@ def update_list_index() -> None:
     """
     Updates list index text.
     """
-    window["-LISTINDEX-"].update(f"{entry_img_index + 1} of {len(current_list)}")
+    window["-LISTINDEX-"].update(
+        f"{entry_img_index + 1} of {len(current_list)}")
 
 
-#EVENT LOOP
+# EVENT LOOP
 while True:
     event: str
     values: dict[str, Any]
@@ -463,4 +482,3 @@ while True:
         update_button_vis()
 
 window.close()
- 
