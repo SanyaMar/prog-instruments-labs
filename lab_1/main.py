@@ -21,11 +21,8 @@ from PIL import Image
 
 
 
-##################################################
-# --------------- Class Objects ---------------- #
-##################################################
 
-
+# Class Objects 
 class Artwork:
     """
     Represents an artwork with its source link and alt text.
@@ -59,10 +56,10 @@ class ArtEntry:
         sourceTitle (str): The title of the source from which the artwork is taken.
         sourceImgList (list): List of Artwork objects representing source images.
     """
-    artworkList: List[Artwork] = []  # list containing Artwork objects
+    artworkList: List[Artwork] = []  
     date: str = ""
     sourceTitle: str = ""
-    sourceImgList: List[Artwork] = []  # list of Artwork objects (source images)
+    sourceImgList: List[Artwork] = []
     
     def __init__(self, artworkList: List[Artwork], date: str, sourceTitle: str, sourceImgList: List[Artwork]) -> None:
         """
@@ -89,10 +86,8 @@ class ArtEntry:
 
 
 
-######################################################
-# --------------- Scraper Functions ---------------- #
-######################################################
 
+#Scraper functions
 # PRIMARY DATA STRUCTURE: List of ArtEntry objects containing all scraped art entries and their individual data
     #
     # allArtEntries[] -> ArtEntry -> artworkList[] -> Artwork -> imgSrc"" 
@@ -100,7 +95,7 @@ class ArtEntry:
     #                             -> sourceTitle""
     #                             -> srcImgList[]  -> Artwork -> imgSrc""
     #                                                         -> imgAlt""
-    #
+    
 allArtEntries: List[ArtEntry] = []
 
 def useScraper() -> None:
@@ -136,8 +131,7 @@ def formatImgList(list: List[str]) -> str:
     return formattedStr
 
 
-# --------------- Scraper ---------------- #
-
+# Scraper
 def runScraper() -> None:
     """
     Requests page content from a specified URL, scrapes art entries, 
@@ -174,7 +168,8 @@ def runScraper() -> None:
             # Date         (date)
             # Original Use (sourceTitle)
             # Source Image (sourceImgList)
-        sections = entry.find_all("td", {"class":"volume"}) # Subsections are stored in <td> tags with class:"volume"
+        # Subsections are stored in <td> tags with class:"volume"
+        sections = entry.find_all("td", {"class":"volume"})
         artworkList: List[str] = []
         date: str = ""
         sourceTitle: str = ""
@@ -185,12 +180,13 @@ def runScraper() -> None:
         srcImgObj = Artwork("","")
 
         # Iterates through each subsection and row of csv, and writes to csv with scraped data
-        sectionCounter: int = 1 # Tracks which subsection/column is being viewed (sections are referred to as "volumes" within the html)
+        # Tracks which subsection/column is being viewed (sections are referred to as "volumes" within the html)
+        sectionCounter: int = 1 
         for section in sections :
 
             # If on a subsection containing images (1 and 4), scrape image content
             if(sectionCounter == 1 or sectionCounter == 4) :
-                thumbnails = section.find_all("a") # href is stored within <a> tags
+                thumbnails = section.find_all("a") 
 
                 # For every thumbnail image, find full-res webpage and create new 
                 for thumbnail in thumbnails :
@@ -198,7 +194,7 @@ def runScraper() -> None:
                     # Grabs href for full-res image webpage from thumbnail container
                         # href = /File:ARTORK_NAME
                     href: Optional[str] = thumbnail.get('href') 
-                    newURL: str = f"https://jojowiki.com{href}" # Appends href to domain to form new url
+                    newURL: str = f"https://jojowiki.com{href}" 
 
                     # Temporary HTML parser to scrape full-res image
                     newRequests_session = requests.Session()
@@ -207,14 +203,10 @@ def runScraper() -> None:
 
                     # Stores preview image, as full resolution images are too large
                     media = newSoup.find("div", {"id":"file"}).find("img")
-                    src = media.get('src') # Grabs image source-link
-                    alt = media.get('alt') # Grabs image alt text
+                    src = media.get('src') 
+                    alt = media.get('alt')
 
-                    # -- REPLACE ABOVE CODE FOR FULL-RESOLUTION IMAGES -- #
-                        # WARNING: Images resolution may exceed monitor resolution and GUI will work improperly
-                    #media = newSoup.find("a", {"class":"internal"})
-                    #src = media.get('href') # Grabs image source-link
-                    #alt = media.get('title') # Grabs image alt text
+                    
 
 
                     if(sectionCounter == 1) :
@@ -223,19 +215,21 @@ def runScraper() -> None:
                         artEntryObj.artworkList.append(artworkObj) 
 
                         # Stores in CSV
-                        artworkList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+                        # Uses <> for separation of entries and ease of possible parsing
+                        artworkList.append("<src: " + src + "\nalt: " + alt + ">") 
 
                     elif(sectionCounter == 4) :
                         # Stores in allArtEntries list
                         srcImgObj = Artwork(src, alt) 
                         artEntryObj.sourceImgList.append(srcImgObj) 
 
-                        # Stores in CSV
-                        sourceImgList.append("<src: " + src + "\nalt: " + alt + ">") # Uses <> for separation of entries and ease of possible parsing
+                       
+                        sourceImgList.append("<src: " + src + "\nalt: " + alt + ">")
 
             # If on a subsection containing text (2 and 3), scrape text content
             elif(sectionCounter == 2 or sectionCounter == 3) :
-                textContent = section.find("center") # Text content is stored within <center> tags
+                # Text content is stored within <center> tags
+                textContent = section.find("center")
 
                 for string in textContent.strings :
                     if(sectionCounter == 2) :
@@ -261,9 +255,8 @@ def runScraper() -> None:
 
 
 
-#########################################
-# --------------- Main ---------------- #
-#########################################
+
+
 
 def main() -> None:
     """ 
@@ -278,9 +271,9 @@ if __name__ == '__main__':
 
 
 
-##################################################
-# --------------- GUI Functions ---------------- #
-##################################################
+
+# GUI functions
+
 
 def openUrl(src: str) -> Optional[urllib.response.urlopen] :
     """
@@ -312,7 +305,7 @@ def returnImgData(url: str) -> Optional[bytes] :
     """            
     # If imgSrc is a png, update window using urllib
     if('.png' in url) :
-        #window["-ENTRYIMAGE-"].update(openUrl(url).read())
+        
         return openUrl(url).read()
 
     # If imgSrc is a jpg, update window using Pillow
@@ -323,12 +316,11 @@ def returnImgData(url: str) -> Optional[bytes] :
         pil_img.save(png_bio, format="PNG")
         png_data = png_bio.getvalue()
 
-        #window["-ENTRYIMAGE-"].update(data=png_data)
+
         return png_data
 
 
-# --------------- GUI ---------------- #
-
+# GUI 
 allArtEntries: List[str] = pickle.load(open("artEntriesData.p", "rb"))
 
 checkBoxes: List[sg.Radio] = []
@@ -376,7 +368,7 @@ layout: List[List[sg.Column]] = [
     ]
 ]
 
-# Window
+
 window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
 
 # Window variables
@@ -385,7 +377,7 @@ currentEntry: ArtEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork
 currentList: List[Artwork] = currentEntry.artworkList
 
 
-# --------------- Window Updater Functions ---------------- #
+#Window updater functions
 
 def updateDate() -> None:
     """
@@ -433,7 +425,7 @@ def updateListIndex() -> None:
     window["-LISTINDEX-"].update(f"{entryImgindex+1} of {len(currentList)}")   
 
 
-# --------------- EVENT LOOP ---------------- #
+#EVENT LOOP
 
 while True :
     event: str
@@ -504,7 +496,7 @@ while True :
         updateListIndex()
         updateButtonVis()
 
-    #print(event, values)
+
 window.close()
 
 
