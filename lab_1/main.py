@@ -7,7 +7,8 @@
 import cchardet
 import lxml
 import requests
-from bs4 import BeautifulSoup 
+from bs4 import BeautifulSoup
+from typing import List, Optional, Any
 
 import csv
 import pickle
@@ -33,10 +34,10 @@ class Artwork:
         imgSrc (str): The URL of the artwork image.
         imgAlt (str): The alt text for the artwork image.
     """
-    imgSrc = ""
-    imgAlt = ""
+    imgSrc: str = ""
+    imgAlt: str = ""
 
-    def __init__(self, imgSrc, imgAlt):
+    def __init__(self, imgSrc: str, imgAlt: str) -> None:
         """
         Initializes the Artwork object with image source and alt text.
 
@@ -58,12 +59,12 @@ class ArtEntry:
         sourceTitle (str): The title of the source from which the artwork is taken.
         sourceImgList (list): List of Artwork objects representing source images.
     """
-    artworkList = [] # list containing Artwork objects
-    date = ""
-    sourceTitle = ""
-    sourceImgList = [] # list of Artwork objects (source images)
+    artworkList: List[Artwork] = []  # list containing Artwork objects
+    date: str = ""
+    sourceTitle: str = ""
+    sourceImgList: List[Artwork] = []  # list of Artwork objects (source images)
     
-    def __init__(self, artworkList, date, sourceTitle, sourceImgList) :
+    def __init__(self, artworkList: List[Artwork], date: str, sourceTitle: str, sourceImgList: List[Artwork]) -> None:
         """
         Initializes the ArtEntry object with details of the artwork entry.
 
@@ -78,7 +79,7 @@ class ArtEntry:
         self.sourceTitle = sourceTitle
         self.sourceImgList = sourceImgList
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns a string representation of the ArtEntry object.
         """
@@ -100,9 +101,9 @@ class ArtEntry:
     #                             -> srcImgList[]  -> Artwork -> imgSrc""
     #                                                         -> imgAlt""
     #
-allArtEntries = []
+allArtEntries: List[ArtEntry] = []
 
-def useScraper() :
+def useScraper() -> None:
     """
     Prompts the user to choose between using previously stored data or rescraping data.
 
@@ -111,12 +112,12 @@ def useScraper() :
     # Theme
     sg.theme('DarkGrey4')
     
-    choice = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", "", title="JoJo's Art Scraper and Viewer")
+    choice: Optional[str] = sg.popup_yes_no("Do you want to use previously stored data?", "Selecting \"No\" will take several minutes to update all stored entries.", "", title="JoJo's Art Scraper and Viewer")
     if (choice == "No") :
         runScraper()
 
 
-def formatImgList(list) :
+def formatImgList(list: List[str]) -> str:
     """
     Formats a list of image sources into a multi-line string for CSV formatting.
 
@@ -126,7 +127,7 @@ def formatImgList(list) :
     Returns:
         str: A formatted string where each entry is on a new line.
     """
-    formattedStr = ""
+    formattedStr: str = ""
 
     for string in list :
         formattedStr += string
@@ -137,13 +138,13 @@ def formatImgList(list) :
 
 # --------------- Scraper ---------------- #
 
-def runScraper() :
+def runScraper() -> None:
     """
     Requests page content from a specified URL, scrapes art entries, 
     and stores the data in a list and a CSV file.
     """
     # GET Request
-    URL =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
+    URL: str =  'https://jojowiki.com/Art_Gallery#2021-2025-0'
     requests_session = requests.Session()
     page = requests_session.get( URL )  
 
@@ -174,17 +175,17 @@ def runScraper() :
             # Original Use (sourceTitle)
             # Source Image (sourceImgList)
         sections = entry.find_all("td", {"class":"volume"}) # Subsections are stored in <td> tags with class:"volume"
-        artworkList = []
-        date = ""
-        sourceTitle = ""
-        sourceImgList = []
+        artworkList: List[str] = []
+        date: str = ""
+        sourceTitle: str = ""
+        sourceImgList: List[str] = []
 
         artEntryObj = ArtEntry([], "", "", [])
         artworkObj = Artwork("", "")
         srcImgObj = Artwork("","")
 
         # Iterates through each subsection and row of csv, and writes to csv with scraped data
-        sectionCounter = 1 # Tracks which subsection/column is being viewed (sections are referred to as "volumes" within the html)
+        sectionCounter: int = 1 # Tracks which subsection/column is being viewed (sections are referred to as "volumes" within the html)
         for section in sections :
 
             # If on a subsection containing images (1 and 4), scrape image content
@@ -196,8 +197,8 @@ def runScraper() :
 
                     # Grabs href for full-res image webpage from thumbnail container
                         # href = /File:ARTORK_NAME
-                    href = thumbnail.get('href') 
-                    newURL = f"https://jojowiki.com{href}" # Appends href to domain to form new url
+                    href: Optional[str] = thumbnail.get('href') 
+                    newURL: str = f"https://jojowiki.com{href}" # Appends href to domain to form new url
 
                     # Temporary HTML parser to scrape full-res image
                     newRequests_session = requests.Session()
@@ -264,7 +265,7 @@ def runScraper() :
 # --------------- Main ---------------- #
 #########################################
 
-def main():
+def main() -> None:
     """ 
     Asks user to use stored data or scrape  
     """
@@ -281,7 +282,7 @@ if __name__ == '__main__':
 # --------------- GUI Functions ---------------- #
 ##################################################
 
-def openUrl(src) :
+def openUrl(src: str) -> Optional[urllib.response.urlopen] :
     """
     The function takes the URL of the image and opens it.
     Spoofing headers are used to bypass the 403: Forbidden error.
@@ -299,7 +300,7 @@ def openUrl(src) :
          print(f"Error encountered in openUrl() with src: \'{src}\'")
 
 # Returns image value for EntryImage depending on img type (PNG or JPG)
-def returnImgData(url) :
+def returnImgData(url: str) -> Optional[bytes] :
     """
     The function returns image data depending on its type (PNG or JPG).
 
@@ -328,14 +329,14 @@ def returnImgData(url) :
 
 # --------------- GUI ---------------- #
 
-allArtEntries = pickle.load(open("artEntriesData.p", "rb"))
+allArtEntries: List[str] = pickle.load(open("artEntriesData.p", "rb"))
 
-checkBoxes = []
+checkBoxes: List[sg.Radio] = []
 checkBoxes.append(sg.Radio("Arts", "faculty", key='arts', enable_events=True,default=True))
 checkBoxes.append(sg.Radio("Commerce", "faculty", key='comm', enable_events=True))
 
 # List of Entries
-entryList_column = [
+entryList_column: List[List[sg.Listbox]] = [
     [
         sg.Listbox( 
             allArtEntries, enable_events=True, size=(80, 20), horizontal_scroll=True,
@@ -345,7 +346,7 @@ entryList_column = [
 ]
 
 # Entry Viewer panel
-entryViwer_column = [
+entryViwer_column: List[List[sg.Element]] = [
 
     # Instruction Text
     [sg.Text("Choose an entry from the list on the left:", key="-INSTRUCTION-", visible=True)], 
@@ -367,7 +368,7 @@ entryViwer_column = [
 ]
 
 # Layout
-layout = [
+layout: List[List[sg.Column]] = [
     [
         sg.Column(entryList_column),
         sg.VSeparator(), 
@@ -379,33 +380,33 @@ layout = [
 window = sg.Window("JoJo's Art Scraper and Viewer", layout, finalize=True)
 
 # Window variables
-entryImgindex = 0
-currentEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
-currentList = currentEntry.artworkList
+entryImgindex: int = 0
+currentEntry: ArtEntry = ArtEntry([Artwork("img","alt")],"date","title",[Artwork("srcimg","srcalt")])
+currentList: List[Artwork] = currentEntry.artworkList
 
 
 # --------------- Window Updater Functions ---------------- #
 
-def updateDate():
+def updateDate() -> None:
     """
     Updates date text
     """
     window["-DATE-"].update(f"{currentEntry.date}")
 
-def updateTitle():
+def updateTitle() -> None:
     """
     Updates title text
     """
     window["-TITLE-"].update(f"{currentEntry.sourceTitle}")
 
-def updateImgWindow() :
+def updateImgWindow() -> None:
     """
     Updates image window
     """
     window["-ENTRYIMAGE-"].update(returnImgData(currentList[entryImgindex].imgSrc))
 
 # Updates button and artworkList index visibility if artworkList > 1 
-def updateButtonVis():
+def updateButtonVis() -> None:
     """
     Updates button and artworkList index visibility if artworkList > 1 
     """
@@ -418,14 +419,14 @@ def updateButtonVis():
         window["-LISTINDEX-"].update(visible=False)
         window["-NEXT-"].update(visible=False)
 
-def updateCheckboxes():
+def updateCheckboxes() -> None:
     """
     Defaults checkbox selection
     """
     window["-ARTWORKLIST-"].update(True, visible=True)
     window["-SOURCELIST-"].update(False, visible=True)
 
-def updateListIndex():
+def updateListIndex() -> None:
     """
     Updates list index text
     """
@@ -435,6 +436,8 @@ def updateListIndex():
 # --------------- EVENT LOOP ---------------- #
 
 while True :
+    event: str
+    values: dict[str, Any]
     event, values = window.read()
     
     # On exit, quit
@@ -503,7 +506,6 @@ while True :
 
     #print(event, values)
 window.close()
-
 
 
 
