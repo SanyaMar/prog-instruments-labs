@@ -1,7 +1,6 @@
 """
-Scraping
-    import PySimpleGUI and urllib.request for GUI
-    from PIL import Image and import io for GUI JPG Image processing
+import PySimpleGUI and urllib.request for GUI
+from PIL import Image and import io for GUI JPG Image processing
 """
 
 
