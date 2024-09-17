@@ -7,18 +7,16 @@ Scraping
 """
 
 import cchardet
+import csv
+import io
 import lxml
+import pickle
 import requests
+import urllib.request
+import PySimpleGUI as sg
+
 from bs4 import BeautifulSoup
 from typing import List, Optional, Any
-
-import csv
-import pickle
-
-import PySimpleGUI as sg
-import urllib.request
-
-import io
 from PIL import Image
 
 # Class Objects
